@@ -96,19 +96,23 @@ async def login(email: str = Body(...), password: str = Body(...)):
     access_token = create_access_token(data={"email": email})
     return {"access_token": access_token, "token_type": "bearer"}
 
+@app.get("/me")
+async def get_user_data(current_user: dict = Depends(get_current_user)):
+    user_data = current_user.copy()
+    user_data.pop("hashed_password", None)  # Remove password field
+    return user_data
+
 # API endpoints
 @app.post("/upload_cashflow")
 async def upload_cashflow(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     try:
-        text = await extract_text_from_image(file)
+        text = extract_text_from_file(file)
         processed = categorize_cashflow(text)
-        
         users_collection = await get_users_collection()
         result = await users_collection.update_one(
             {"_id": current_user["_id"]},
             {"$push": {"cash_flow": processed}}
         )
-        
         return {"message": "Cashflow record added", "record": processed}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
