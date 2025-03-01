@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any
 class CashFlowRecord(BaseModel):
     time: int # number of days before the application
     amount: float
-    category: str  # Expected: "rent", "electricity", "phone", "subscriptions", "other"
+    category: str
 
 class DigitalFootprint(BaseModel):
     tiktok: Optional[Dict[str, Any]] = None
@@ -16,4 +16,4 @@ class User(BaseModel):
     cash_flow: Optional[List[CashFlowRecord]] = None
     digital_footprint: Optional[DigitalFootprint] = None
     official_documents: Optional[str] = None
-    history_data: Optional[Dict[str, Any]] = None
+    application_history: str = "-1" # 1 for paid loan back, 0 for did not pay back

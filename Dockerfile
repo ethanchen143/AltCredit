@@ -1,7 +1,9 @@
-FROM python:3.13
+FROM python:3.11
 
 # Install dependencies
 RUN apt-get update && apt-get install -y tesseract-ocr
+
+RUN pip install --upgrade pip setuptools
 
 # Set working directory
 WORKDIR /app
