@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import uvicorn
 from models import User
 from db import get_users_collection
-from ocr import extract_text_from_image, categorize_cashflow
+from ocr import extract_text_from_file, categorize_cashflow
 from train import train_model as train_model_func
 from predict import predict_eligibility
 from typing import Dict, Any, Optional
