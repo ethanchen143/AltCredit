@@ -1,13 +1,28 @@
-import re
+import pytesseract
+import os
+from pdf2image import convert_from_bytes
+from PIL import Image
 from fastapi import UploadFile
-# handling cashflow and official document
-def extract_text_from_image(file: UploadFile) -> str:
+
+def extract_text_from_file(file: UploadFile) -> str:
     """
-    Dummy OCR extraction.
-    Replace with pytesseract or any real OCR lib in production.
+    Extract text from images (JPEG, PNG) and PDFs using Tesseract OCR.
     """
-    content = file.file.read().decode("utf-8", errors="ignore")
-    return content
+    file_bytes = file.file.read()
+    filename = file.filename.lower()
+
+    if filename.endswith(".pdf"):
+        images = convert_from_bytes(file_bytes)  # Convert PDF to images
+        text = "\n".join([pytesseract.image_to_string(img) for img in images])
+    
+    elif filename.endswith((".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".gif")):
+        image = Image.open(file.file)
+        text = pytesseract.image_to_string(image)
+    
+    else:
+        raise ValueError("Unsupported file type. Please upload a PDF or image.")
+
+    return text
 
 def categorize_cashflow(text: str) -> dict:
     """
@@ -36,5 +51,5 @@ def categorize_official_document(text: str) -> dict:
     amount_match = re.search(r"(\d+\.\d{2})", text)
     amount = float(amount_match.group(1)) if amount_match else 0.0
     category = "other"
-    
+
     return {"category": category, "amount": amount}

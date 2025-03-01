@@ -11,3 +11,5 @@ passlib
 PyJWT
 python-multipart
 bcrypt
+requests
+pdf2image
