@@ -1,6 +1,12 @@
+from dotenv import load_dotenv
+load_dotenv()
 import motor.motor_asyncio
+import os
 
-MONGO_DETAILS = "mongodb://localhost:27017"
-client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
-db = client.credit_app_db
-applications_collection = db.applications
+MONGO_URI = os.getenv("MONGO_URI")
+client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
+
+async def get_users_collection():
+    """Get the users collection with async support"""
+    db = client['altcredit']
+    return db.users

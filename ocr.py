@@ -1,6 +1,6 @@
 import re
 from fastapi import UploadFile
-
+# handling cashflow and official document
 def extract_text_from_image(file: UploadFile) -> str:
     """
     Dummy OCR extraction.
@@ -25,4 +25,16 @@ def categorize_cashflow(text: str) -> dict:
         category = "phone"
     elif "subscription" in text_lower:
         category = "subscriptions"
+
+    # TODO: change to time
     return {"amount": amount, "category": category, "raw_text": text}
+
+def categorize_official_document(text: str) -> dict:
+    """
+    Dummy categorization: Extracts amount and categorizes based on keywords.
+    """
+    amount_match = re.search(r"(\d+\.\d{2})", text)
+    amount = float(amount_match.group(1)) if amount_match else 0.0
+    category = "other"
+    
+    return {"category": category, "amount": amount}

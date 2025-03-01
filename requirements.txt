@@ -6,3 +6,8 @@ pyspark
 pytesseract
 pillow
 numpy
+dotenv
+passlib
+PyJWT
+python-multipart
+bcrypt
