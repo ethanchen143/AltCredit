@@ -1,10 +1,10 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 import uvicorn
 from models import User
 from db import get_users_collection
-from ocr import extract_text_from_file, categorize_cashflow
+from ocr import extract_text_from_file, categorize_cashflow, categorize_official_document
 from train import train_model as train_model_func
 from predict import predict_eligibility
 from typing import Dict, Any, Optional
@@ -85,7 +85,6 @@ async def signup(email: str = Body(...), password: str = Body(...)):
     access_token = create_access_token(data={"email": email})
     return {"message": "User registered successfully", "access_token": access_token, "token_type": "bearer"}
 
-# Simple login endpoint for curl testing
 @app.post("/login")
 async def login(email: str = Body(...), password: str = Body(...)):
     users_collection = await get_users_collection()
@@ -149,15 +148,13 @@ async def update_general_info(general_info: Dict[str, Any] = Body(...), current_
 @app.post("/upload_official_document")
 async def upload_official_document(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     try:
-        text = await extract_text_from_image(file)
-        processed = categorize_cashflow(text)
-        
+        text = extract_text_from_file(file)
+        processed = categorize_official_document(text)
         users_collection = await get_users_collection()
         result = await users_collection.update_one(
             {"_id": current_user["_id"]},
             {"$push": {"official_documents": processed}}
         )
-        
         return {"message": "Official Documents added", "record": processed}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

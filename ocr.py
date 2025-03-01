@@ -48,9 +48,9 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> str:
 import openai
 import datetime
 from fastapi import HTTPException
-import os
 from dotenv import load_dotenv
 import json
+import os
 load_dotenv()
 # Set OpenAI API Key
 openai.api_key = os.getenv("OPENAI_KEY")
@@ -98,7 +98,7 @@ def categorize_cashflow(text: str) -> dict:
         # Fix GPT adding triple backticks or unnecessary text
         if gpt_output.startswith("```json"):
             gpt_output = gpt_output[7:-3]  # Remove ```json and trailing ```
-        print(gpt_output)
+
         extracted_data = json.loads(gpt_output)
 
         if isinstance(extracted_data, list) and len(extracted_data) > 0:
@@ -133,10 +133,41 @@ def categorize_cashflow(text: str) -> dict:
 
 def categorize_official_document(text: str) -> dict:
     """
-    Dummy categorization: Extracts amount and categorizes based on keywords.
+    Uses GPT-4o to extract financial details: category, amount, and timestamp.
     """
-    amount_match = re.search(r"(\d+\.\d{2})", text)
-    amount = float(amount_match.group(1)) if amount_match else 0.0
-    category = "other"
 
-    return {"category": category, "amount": amount}
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Extract the type of the document from the given text. "
+                               "Provide the type as a single string"
+                               """
+                                The document has to be one of the following
+                                    1. International Credit Report 
+                                    2. Record of Income W2
+                                    3. Record of Insurance payments
+                                    4. Deed to Property (House or Car)
+                                    5. Others
+                               """
+                               "The text will be buggy since it's scraped using OCR, if you are not sure do not assume it is one of the valid document types."
+                               "Without any additional explanation, return in JSON format. Example: International Credit Report"
+                },
+                {
+                    "role": "user",
+                    "content": f"Extract document type from this text: \"{text}\""
+                }
+            ],
+            temperature=0.2
+        )
+
+        if gpt_output.startswith("```json"):
+            gpt_output = gpt_output[7:-3]  # Remove ```json and trailing ```
+
+        gpt_output = response.choices[0].message.content
+        return gpt_output
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing text: {str(e)}")

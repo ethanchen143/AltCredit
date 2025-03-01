@@ -15,5 +15,5 @@ class User(BaseModel):
     general_info: Dict[str, Any]
     cash_flow: Optional[List[CashFlowRecord]] = None
     digital_footprint: Optional[DigitalFootprint] = None
-    official_documents: Optional[Dict[str, Any]] = None
+    official_documents: Optional[str] = None
     history_data: Optional[Dict[str, Any]] = None
