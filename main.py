@@ -5,7 +5,6 @@ import uvicorn
 from models import User
 from db import get_users_collection
 from ocr import extract_text_from_image, categorize_cashflow
-from digital_footprint import process_tiktok_data
 from train import train_model as train_model_func
 from predict import predict_eligibility
 from typing import Dict, Any, Optional
@@ -114,18 +113,23 @@ async def upload_cashflow(file: UploadFile = File(...), current_user: dict = Dep
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+from tiktok_scraper import get_user_info
+
 @app.post("/update_digital")
 async def update_digital(tiktok_username: str = Body(...), current_user: dict = Depends(get_current_user)):
     users_collection = await get_users_collection()
+    tiktok_data = get_user_info(tiktok_username)
+    if "error" in tiktok_data:
+        raise HTTPException(status_code=400, detail=tiktok_data["error"])
+    
     result = await users_collection.update_one(
         {"_id": current_user["_id"]},
-        {"$set": {"digital_footprint.tiktok.username": tiktok_username}}
+        {"$set": {"digital_footprint.tiktok": tiktok_data["tiktok"]}}
     )
-    
     if result.modified_count == 0 and result.matched_count == 0:
         raise HTTPException(status_code=404, detail="User not found or update failed")
     
-    return {"message": "TikTok username updated", "tiktok_username": tiktok_username}
+    return {"message": "TikTok digital footprint updated", "tiktok": tiktok_data["tiktok"]}
 
 @app.post("/update_general_info")
 async def update_general_info(general_info: Dict[str, Any] = Body(...), current_user: dict = Depends(get_current_user)):
@@ -190,4 +194,5 @@ async def upload_official_document(file: UploadFile = File(...), current_user: d
 #         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000)) 
+    uvicorn.run(app, host="0.0.0.0", port=port)
