@@ -106,6 +106,8 @@ const handleLogin = async (e) => {
         <button type="submit">Update General Info</button>
       </form>
 
+      <button onClick={(e) => { e.preventDefault(); handleAPIRequest("apply", "POST",{})}}>Apply</button>
+
       <form onSubmit={(e) => {
         e.preventDefault();
         if (!cashflowFile) return setResponseMessage("No file selected.");
@@ -129,6 +131,8 @@ const handleLogin = async (e) => {
         <input type="file" onChange={(e) => setDocumentFile(e.target.files[0])} />
         <button type="submit">Upload Document</button>
       </form>
+
+      
     </div>
   );
 }

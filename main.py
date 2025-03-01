@@ -78,7 +78,8 @@ async def signup(email: str = Body(...), password: str = Body(...)):
         raise HTTPException(status_code=400, detail="Email already registered")
 
     hashed_password = hash_password(password)
-    user = {"email": email, "hashed_password": hashed_password, "general_info": {}, "cash_flow": []}
+    # set up a default user
+    user = {"email": email, "hashed_password": hashed_password, "general_info": {}, "cash_flow": [], "digital_footprint":[],"official_documents":[],"application_history":"-1"}
     result = await users_collection.insert_one(user)
     
     # Return token on signup for immediate login
@@ -159,17 +160,18 @@ async def upload_official_document(file: UploadFile = File(...), current_user: d
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-# 2. Submit a full application (update the user's document).
-# @app.post("/apply")
-# async def apply(user_data: User, current_user: dict = Depends(get_current_user)):
-#     data = user_data.dict()
-#     data["user_id"] = current_user["id"]
-#     await users_collection.update_one(
-#         {"user_id": current_user["id"]},
-#         {"$set": data},
-#         upsert=True
-#     )
-#     return {"message": "Application submitted", "user_id": current_user["id"]}
+@app.post("/apply")
+async def apply(current_user: dict = Depends(get_current_user)):
+    try:
+        prediction = predict_eligibility(current_user)
+        users_collection = await get_users_collection()
+        result = await users_collection.update_one(
+            {"_id": current_user["_id"]},
+            {"$set": {"application_history":"0"}}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"message": "Application submitted", "eligible": prediction}
 
 # # 4. Train the RandomForest model using all user data.
 # @app.post("/train")
@@ -177,20 +179,6 @@ async def upload_official_document(file: UploadFile = File(...), current_user: d
 #     try:
 #         model_path = await train_model_func(users_collection.database)
 #         return {"message": "Model trained", "model_path": model_path}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
-# # 5. Predict loan eligibility using the user's cashflow records.
-# @app.post("/predict")
-# async def predict(current_user: dict = Depends(get_current_user)):
-#     user_id = current_user["id"]
-#     user_doc = await users_collection.find_one({"user_id": user_id})
-#     if not user_doc:
-#         raise HTTPException(status_code=404, detail="User not found")
-#     cash_flow_records = user_doc.get("cash_flow", [])
-#     try:
-#         prediction = predict_eligibility(cash_flow_records)
-#         return {"eligible": prediction}
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 

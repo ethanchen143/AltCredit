@@ -135,7 +135,6 @@ def categorize_official_document(text: str) -> dict:
     """
     Uses GPT-4o to extract financial details: category, amount, and timestamp.
     """
-
     try:
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
@@ -162,12 +161,12 @@ def categorize_official_document(text: str) -> dict:
             ],
             temperature=0.2
         )
-
+        gpt_output = response.choices[0].message.content
+    
         if gpt_output.startswith("```json"):
             gpt_output = gpt_output[7:-3]  # Remove ```json and trailing ```
 
-        gpt_output = response.choices[0].message.content
-        return gpt_output
+        return gpt_output.strip()
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing text: {str(e)}")
