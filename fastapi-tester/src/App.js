@@ -108,6 +108,7 @@ const handleLogin = async (e) => {
 
       <button onClick={(e) => { e.preventDefault(); handleAPIRequest("apply", "POST",{})}}>Apply</button>
       <button onClick={(e) => { e.preventDefault(); handleAPIRequest("train", "POST",{})}}>Train</button>
+      <button onClick={(e) => { e.preventDefault(); handleAPIRequest("me", "GET",{})}}>Get Data</button>
 
       <form onSubmit={(e) => {
         e.preventDefault();

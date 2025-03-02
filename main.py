@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import jwt
 from jwt.exceptions import PyJWTError
 from dotenv import load_dotenv
+from bson import ObjectId 
 import os
 import uvicorn
 
@@ -95,11 +96,22 @@ async def login(email: str = Body(...), password: str = Body(...)):
     access_token = create_access_token(data={"email": email})
     return {"access_token": access_token, "token_type": "bearer"}
 
+def fix_objectid(obj: Any):
+    """Convert ObjectId to string recursively in a dict"""
+    if isinstance(obj, dict):
+        return {k: fix_objectid(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [fix_objectid(v) for v in obj]
+    elif isinstance(obj, ObjectId):
+        return str(obj)
+    return obj
+
 @app.get("/me")
 async def get_user_data(current_user: dict = Depends(get_current_user)):
     user_data = current_user.copy()
     user_data.pop("hashed_password", None)  # Remove password field
-    return user_data
+    
+    return fix_objectid(user_data)
 
 # API endpoints
 @app.post("/upload_cashflow")

@@ -96,11 +96,10 @@ def generate_random_tiktok():
 
 def generate_random_documents():
     """Generate random list of official documents"""
-    all_documents = ["Others", "International Credit Report", "Record of Income W2", 
-                     "Passport", "Driver's License", "Birth Certificate", "Social Security Card",
-                     "Bank Statement", "Credit Report", "Utility Bill", "Tax Return"]
+    all_documents = ["International Credit Report", "Record of Income W2", "Record of Insurance Payments", 
+                     "Deed to Property (House or Car)"]
     
-    num_docs = random.randint(1, 4)
+    num_docs = random.randint(0, 3)
     return random.sample(all_documents, num_docs)
 
 def generate_random_user():

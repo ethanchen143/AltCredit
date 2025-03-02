@@ -147,7 +147,7 @@ def categorize_official_document(text: str) -> dict:
                                 The document has to be one of the following
                                     1. International Credit Report 
                                     2. Record of Income W2
-                                    3. Record of Insurance payments
+                                    3. Record of Insurance Payments
                                     4. Deed to Property (House or Car)
                                     5. Others
                                """
