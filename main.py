@@ -1,8 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
-import uvicorn
-from models import User
 from db import get_users_collection
 from ocr import extract_text_from_file, categorize_cashflow, categorize_official_document
 from train import train_model as train_model_func
@@ -14,6 +12,7 @@ import jwt
 from jwt.exceptions import PyJWTError
 from dotenv import load_dotenv
 import os
+import uvicorn
 
 # Load environment variables
 load_dotenv()
@@ -165,22 +164,23 @@ async def apply(current_user: dict = Depends(get_current_user)):
     try:
         prediction = predict_eligibility(current_user)
         users_collection = await get_users_collection()
-        result = await users_collection.update_one(
-            {"_id": current_user["_id"]},
-            {"$set": {"application_history":"0"}}
-        )
+        if int(prediction) == 1:
+            result = await users_collection.update_one(
+                {"_id": current_user["_id"]},
+                {"$set": {"application_history":"0"}}
+            )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    return {"message": "Application submitted", "eligible": prediction}
+    return {"message": "Application submitted", "eligible (0 for no and 1 for yes)": prediction}
 
-# # 4. Train the RandomForest model using all user data.
-# @app.post("/train")
-# async def train(current_user: dict = Depends(get_current_user)):
-#     try:
-#         model_path = await train_model_func(users_collection.database)
-#         return {"message": "Model trained", "model_path": model_path}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
+# Train the RandomForest model using all user data.
+@app.post("/train")
+async def train():
+    try:
+        model_path = await train_model_func(await get_users_collection())
+        return {"message": "Model trained", "model_path": model_path}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000)) 
