@@ -1,10 +1,7 @@
-# Use the official Python image as the base
 FROM python:3.11-slim
 
-# Install Java (required for Spark)
 RUN apt-get update && \
-    mkdir -p /usr/share/man/man1 && \
-    apt-get install -y openjdk-11-jdk && \
+    apt-get install -y openjdk-17-jdk-headless && \
     apt-get clean
 
 # Set JAVA_HOME environment variable
