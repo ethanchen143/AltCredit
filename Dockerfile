@@ -3,6 +3,7 @@ FROM python:3.11-slim
 
 # Install Java (required for Spark)
 RUN apt-get update && \
+    mkdir -p /usr/share/man/man1 && \
     apt-get install -y openjdk-11-jdk && \
     apt-get clean
 
