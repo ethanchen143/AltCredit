@@ -45,6 +45,12 @@ async def train_model(db):
     spark = SparkSession.builder.appName("CreditAppTraining").getOrCreate()
     rows = []
     for app in apps:
+        # Convert the application_history text to a numeric label:
+        # "1" means the loan was paid back, otherwise it's 0.
+        label_str = str(app.get("application_history", "0")).strip()
+        if label_str == '-1':
+            continue
+        label = 1 if label_str == "1" else 0
         # Aggregate cash flow data into 5 numeric features
         cash_flow = app.get("cash_flow", [])
         agg = aggregate_cash_flow(cash_flow)
@@ -67,11 +73,6 @@ async def train_model(db):
             int(tiktok.get("verified", False)),  # Convert boolean to 1/0
             int(tiktok.get("private", False)),   # Convert boolean to 1/0
         ]
-
-        # Convert the application_history text to a numeric label:
-        # "1" means the loan was paid back, otherwise it's 0.
-        label_str = str(app.get("application_history", "0")).strip()
-        label = 1 if label_str == "1" else 0
 
         # Combine aggregated cash flow, official document, and TikTok features, then append label.
         row = [float(agg.get(cat, 0)) for cat in CATEGORIES] + \

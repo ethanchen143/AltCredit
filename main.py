@@ -78,7 +78,7 @@ async def signup(email: str = Body(...), password: str = Body(...)):
 
     hashed_password = hash_password(password)
     # set up a default user
-    user = {"email": email, "hashed_password": hashed_password, "general_info": {}, "cash_flow": [], "digital_footprint":[],"official_documents":[],"application_history":"-1"}
+    user = {"email": email, "hashed_password": hashed_password, "general_info": {}, "cash_flow": [], "digital_footprint": {'tiktok':{}},"official_documents":[],"application_history":"-1"}
     result = await users_collection.insert_one(user)
     
     # Return token on signup for immediate login
